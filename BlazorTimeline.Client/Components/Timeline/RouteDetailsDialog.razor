@@ -1,0 +1,112 @@
+@using BlazorTimeline.Client.Models
+@using BlazorTimeline.Client.Components.Timeline
+@using static BlazorTimeline.Client.Components.Timeline.Map
+
+<MudDialog>
+    <DialogContent>
+        @if (Route != null)
+        {
+            <MudGrid Spacing="2">
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6">Route Details</MudText>
+                    <MudText>Driver: @Route.Driver.Name</MudText>
+                    <MudText>Vehicle: @Route.Vehicle.Registration</MudText>
+                    <MudText>Number of drops: @Route.Deliveries.Count</MudText>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6">Planned</MudText>
+                    <MudPaper Class="d-flex flex-wrap gap-2">
+                        @foreach (var delivery in Route.Deliveries)
+                        {
+                            <MudPaper Class="pa-2">
+                                @delivery.DropNumber. @delivery.StoreName
+                                <br />
+                                @delivery.PlannedTime.ToString("HH:mm")
+                            </MudPaper>
+                        }
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6">Actual</MudText>
+                    <MudPaper Class="d-flex flex-wrap gap-2">
+                        @for (var i = 0; i < Route.Deliveries.Count; i++)
+                        {
+                            var delivery = Route.Deliveries[i];
+                            var previousDelivery = i > 0 ? Route.Deliveries[i - 1] : null;
+                            var colorClass = TimelineHelper.GetDeliveryStatusColorClass(delivery, previousDelivery);
+                            <MudPaper Class="pa-2 @colorClass">
+                                @delivery.DropNumber. @delivery.StoreName
+                                <br />
+                                @(delivery.ActualTime?.ToString("HH:mm") ?? "N/A")
+                            </MudPaper>
+                        }
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudButton Variant="Variant.Filled" OnClick="ToggleMap">
+                        @(isMapVisible ? "Hide Map" : "Show Map")
+                    </MudButton>
+                </MudItem>
+
+                @if (isMapVisible && mapMarkers.Any())
+                {
+                    <MudItem xs="12">
+                        <Map Markers="mapMarkers" />
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public Route Route { get; set; }
+
+    private bool isMapVisible = false;
+    private List<MapMarker> mapMarkers = new();
+
+    void Cancel() => MudDialog.Cancel();
+
+    private void ToggleMap()
+    {
+        isMapVisible = !isMapVisible;
+        if (isMapVisible)
+        {
+            GenerateMapMarkers();
+        }
+    }
+
+    private void GenerateMapMarkers()
+    {
+        mapMarkers.Clear();
+
+        foreach (var delivery in Route.Deliveries)
+        {
+            mapMarkers.Add(new MapMarker
+            {
+                Latitude = delivery.StoreLatitude,
+                Longitude = delivery.StoreLongitude,
+                PopupText = $"Drop {delivery.DropNumber}: {delivery.StoreName}"
+            });
+        }
+
+        var lastCompletedDelivery = Route.Deliveries.LastOrDefault(d => d.ActualTime.HasValue);
+        if (lastCompletedDelivery != null)
+        {
+            mapMarkers.Add(new MapMarker
+            {
+                Latitude = lastCompletedDelivery.StoreLatitude,
+                Longitude = lastCompletedDelivery.StoreLongitude,
+                PopupText = $"Driver: {Route.Driver.Name} (at {lastCompletedDelivery.StoreName})"
+            });
+        }
+    }
+}
