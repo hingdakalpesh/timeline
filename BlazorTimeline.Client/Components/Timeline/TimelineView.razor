@@ -3,19 +3,36 @@
 @using System.Timers
 @implements IDisposable
 
-<div class="timeline-view">
-    <div class="current-time-line" style="left: @currentTimePosition%;"></div>
-
-    @if (Routes != null)
-    {
-        @foreach (var route in Routes)
+<MudSimpleTable Hover="true">
+    <thead>
+        <tr>
+            <th>Driver/Vehicle</th>
+            <th>Timeline</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Routes != null)
         {
-            <TimelineRow Route="route" OnClick="() => OnTileClick.InvokeAsync(route)" />
+            @foreach (var route in Routes)
+            {
+                <tr @onclick="() => OnTileClick.InvokeAsync(route)" style="cursor:pointer">
+                    <td>
+                        <DriverVehicleInfoTile Route="route" />
+                    </td>
+                    <td style="position: relative; height: 120px;">
+                        @foreach (var delivery in route.Deliveries)
+                        {
+                            var colorClass = TimelineHelper.GetDeliveryStatusColorClass(delivery, route.Deliveries.FirstOrDefault(d => d.DropNumber == delivery.DropNumber - 1));
+                            <DeliveryTile Delivery="delivery" StartOfDay="route.PlannedStartTime.Date" ColorClass="@colorClass" />
+                        }
+                        <div class="current-time-line" style="left: @currentTimePosition%;"></div>
+                    </td>
+                </tr>
+            }
         }
-    }
-
-    <TimeScale />
-</div>
+    </tbody>
+</MudSimpleTable>
+<TimeScale />
 
 @code {
     [Parameter]

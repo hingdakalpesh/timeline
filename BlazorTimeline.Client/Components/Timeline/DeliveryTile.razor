@@ -1,9 +1,11 @@
 @using BlazorTimeline.Client.Models
 @using BlazorTimeline.Client.Components.Timeline
 
-<div class="delivery-tile @ColorClass" style="left: @(TimelineHelper.CalculateLeftPosition(Delivery.PlannedTime, StartOfDay))%;">
-    @Delivery.StoreName
-</div>
+<MudCard Class="@ColorClass" Style="@($"position: absolute; left: {TimelineHelper.CalculateLeftPosition(Delivery.PlannedTime, StartOfDay)}%;")">
+    <MudCardContent>
+        <MudText Typo="Typo.body2">@Delivery.StoreName</MudText>
+    </MudCardContent>
+</MudCard>
 
 @code {
     [Parameter]

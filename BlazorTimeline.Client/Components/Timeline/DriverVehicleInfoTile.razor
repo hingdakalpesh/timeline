@@ -1,12 +1,18 @@
 @using BlazorTimeline.Client.Models
 @using BlazorTimeline.Client.Components.Timeline
 
-<div class="driver-vehicle-info-tile @TimelineHelper.GetStatusColorClass(Route.PlannedStartTime, Route.ActualStartTime, true)">
-    <h5>@Route.Driver.Name</h5>
-    <p>@Route.Vehicle.Registration</p>
-    <p>Planned Start: @Route.PlannedStartTime.ToString("HH:mm")</p>
-    <p>Actual Start: @(Route.ActualStartTime?.ToString("HH:mm") ?? "N/A")</p>
-</div>
+<MudCard Class="@TimelineHelper.GetStatusColorClass(Route.PlannedStartTime, Route.ActualStartTime, true)">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">@Route.Driver.Name</MudText>
+            <MudText Typo="Typo.body2">@Route.Vehicle.Registration</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText>Planned Start: @Route.PlannedStartTime.ToString("HH:mm")</MudText>
+        <MudText>Actual Start: @(Route.ActualStartTime?.ToString("HH:mm") ?? "N/A")</MudText>
+    </MudCardContent>
+</MudCard>
 
 @code {
     [Parameter]

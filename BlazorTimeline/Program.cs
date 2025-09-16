@@ -5,6 +5,7 @@ using BlazorTimeline.Client.Pages;
 using BlazorTimeline.Components;
 using BlazorTimeline.Components.Account;
 using BlazorTimeline.Data;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +37,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+builder.Services.AddMudServices();
 
 var app = builder.Build();
 

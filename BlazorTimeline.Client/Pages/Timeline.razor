@@ -2,76 +2,118 @@
 @using BlazorTimeline.Client.Models
 @using BlazorTimeline.Client.Services
 @using BlazorTimeline.Client.Components.Timeline
-@using BlazorTimeline.Client.Components.Shared
 @inject TimelineService TimelineService
+@inject IDialogService DialogService
 
-<h3>Timeline</h3>
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge">
+    <MudGrid Spacing="2" Justify="Justify.Center">
+        <MudItem xs="12" sm="6" md="3">
+            <MudDatePicker Label="Date" @bind-Date="SelectedDate" />
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudSelect T="int?" Label="Contract" @bind-Value="SelectedContractId">
+                <MudSelectItem T="int?" Value="null">All</MudSelectItem>
+                @foreach (var contract in contracts)
+                {
+                    <MudSelectItem T="int?" Value="contract.Id">@contract.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudSelect T="int?" Label="Driver" @bind-Value="SelectedDriverId">
+                <MudSelectItem T="int?" Value="null">All</MudSelectItem>
+                @foreach (var driver in drivers)
+                {
+                    <MudSelectItem T="int?" Value="driver.Id">@driver.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudSelect T="int?" Label="Vehicle" @bind-Value="SelectedVehicleId">
+                <MudSelectItem T="int?" Value="null">All</MudSelectItem>
+                @foreach (var vehicle in vehicles)
+                {
+                    <MudSelectItem T="int?" Value="vehicle.Id">@vehicle.Registration</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+    </MudGrid>
 
-<div class="row">
-    <div class="col-md-3">
-        <label>Date:</label>
-        <InputDate @bind-Value="selectedDate" class="form-control" @onchange="ApplyFilters" />
-    </div>
-    <div class="col-md-3">
-        <label>Contract:</label>
-        <select @bind="selectedContractId" class="form-control" @onchange="ApplyFilters">
-            <option value="">All</option>
-            @foreach (var contract in contracts)
-            {
-                <option value="@contract.Id">@contract.Name</option>
-            }
-        </select>
-    </div>
-    <div class="col-md-3">
-        <label>Driver:</label>
-        <select @bind="selectedDriverId" class="form-control" @onchange="ApplyFilters">
-            <option value="">All</option>
-            @foreach (var driver in drivers)
-            {
-                <option value="@driver.Id">@driver.Name</option>
-            }
-        </select>
-    </div>
-    <div class="col-md-3">
-        <label>Vehicle:</label>
-        <select @bind="selectedVehicleId" class="form-control" @onchange="ApplyFilters">
-            <option value="">All</option>
-            @foreach (var vehicle in vehicles)
-            {
-                <option value="@vehicle.Id">@vehicle.Registration</option>
-            }
-        </select>
-    </div>
-</div>
+    <MudPaper Class="mt-4">
+        @if (routes == null)
+        {
+            <MudProgressCircular Indeterminate="true" />
+        }
+        else
+        {
+            <TimelineView Routes="routes" OnTileClick="ShowRouteDetails" />
+        }
+    </MudPaper>
+</MudContainer>
 
-<hr />
-
-@if (routes == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <TimelineView Routes="routes" OnTileClick="ShowRouteDetails" />
-}
-
-<Popup Title="Route Details" IsVisible="isPopupVisible" OnClose="ClosePopup">
-    <RouteDetailsPopup Route="selectedRoute" />
-</Popup>
 
 @code {
-    private List<Route> routes;
+    private List<Route> routes = new();
     private List<Contract> contracts = new();
     private List<Driver> drivers = new();
     private List<Vehicle> vehicles = new();
 
-    private DateTime selectedDate = DateTime.Today;
+    private DateTime? selectedDate = DateTime.Today;
     private int? selectedContractId;
     private int? selectedDriverId;
     private int? selectedVehicleId;
 
-    private bool isPopupVisible = false;
-    private Route selectedRoute;
+    public DateTime? SelectedDate
+    {
+        get => selectedDate;
+        set
+        {
+            if (selectedDate != value)
+            {
+                selectedDate = value;
+                LoadRoutes();
+            }
+        }
+    }
+
+    public int? SelectedContractId
+    {
+        get => selectedContractId;
+        set
+        {
+            if (selectedContractId != value)
+            {
+                selectedContractId = value;
+                LoadRoutes();
+            }
+        }
+    }
+
+    public int? SelectedDriverId
+    {
+        get => selectedDriverId;
+        set
+        {
+            if (selectedDriverId != value)
+            {
+                selectedDriverId = value;
+                LoadRoutes();
+            }
+        }
+    }
+
+    public int? SelectedVehicleId
+    {
+        get => selectedVehicleId;
+        set
+        {
+            if (selectedVehicleId != value)
+            {
+                selectedVehicleId = value;
+                LoadRoutes();
+            }
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -83,25 +125,17 @@ else
 
     private async Task LoadRoutes()
     {
-        routes = await TimelineService.GetRoutesAsync(selectedDate, selectedContractId, selectedDriverId, selectedVehicleId);
+        if (selectedDate.HasValue)
+        {
+            routes = await TimelineService.GetRoutesAsync(selectedDate.Value, selectedContractId, selectedDriverId, selectedVehicleId);
+            StateHasChanged();
+        }
     }
 
-    private async void ApplyFilters()
+    private async Task ShowRouteDetails(Route route)
     {
-        await LoadRoutes();
-        StateHasChanged();
-    }
-
-    private void ShowRouteDetails(Route route)
-    {
-        selectedRoute = route;
-        isPopupVisible = true;
-        StateHasChanged();
-    }
-
-    private void ClosePopup()
-    {
-        isPopupVisible = false;
-        StateHasChanged();
+        var parameters = new DialogParameters { ["Route"] = route };
+        var dialog = DialogService.Show<RouteDetailsDialog>("Route Details", parameters);
+        await dialog.Result;
     }
 }
