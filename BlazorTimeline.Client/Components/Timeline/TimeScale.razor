@@ -1,0 +1,15 @@
+@using System.Timers
+@implements IDisposable
+
+<div class="time-scale">
+    @for (int hour = 0; hour < 24; hour++)
+    {
+        <div class="time-marker" style="left: @(hour * 100 / 24)%;">
+            @hour:00
+        </div>
+    }
+</div>
+
+@code {
+    // No code needed for this simple version
+}

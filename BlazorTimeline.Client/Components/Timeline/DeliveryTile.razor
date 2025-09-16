@@ -1,0 +1,17 @@
+@using BlazorTimeline.Client.Models
+@using BlazorTimeline.Client.Components.Timeline
+
+<div class="delivery-tile @ColorClass" style="left: @(TimelineHelper.CalculateLeftPosition(Delivery.PlannedTime, StartOfDay))%;">
+    @Delivery.StoreName
+</div>
+
+@code {
+    [Parameter]
+    public Delivery Delivery { get; set; }
+
+    [Parameter]
+    public DateTime StartOfDay { get; set; }
+
+    [Parameter]
+    public string ColorClass { get; set; }
+}

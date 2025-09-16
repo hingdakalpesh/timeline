@@ -1,0 +1,51 @@
+@using BlazorTimeline.Client.Models
+@using BlazorTimeline.Client.Components.Timeline
+@using System.Timers
+@implements IDisposable
+
+<div class="timeline-view">
+    <div class="current-time-line" style="left: @currentTimePosition%;"></div>
+
+    @if (Routes != null)
+    {
+        @foreach (var route in Routes)
+        {
+            <TimelineRow Route="route" OnClick="() => OnTileClick.InvokeAsync(route)" />
+        }
+    }
+
+    <TimeScale />
+</div>
+
+@code {
+    [Parameter]
+    public List<Route> Routes { get; set; }
+
+    [Parameter]
+    public EventCallback<Route> OnTileClick { get; set; }
+
+    private double currentTimePosition;
+    private Timer timer;
+
+    protected override void OnInitialized()
+    {
+        SetCurrentTimePosition();
+        timer = new Timer(60000); // Update every minute
+        timer.Elapsed += (sender, e) => InvokeAsync(() =>
+        {
+            SetCurrentTimePosition();
+            StateHasChanged();
+        });
+        timer.Start();
+    }
+
+    private void SetCurrentTimePosition()
+    {
+        currentTimePosition = TimelineHelper.CalculateLeftPosition(DateTime.Now, DateTime.Today);
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+}

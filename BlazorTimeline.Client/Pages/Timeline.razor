@@ -1,0 +1,107 @@
+@page "/timeline"
+@using BlazorTimeline.Client.Models
+@using BlazorTimeline.Client.Services
+@using BlazorTimeline.Client.Components.Timeline
+@using BlazorTimeline.Client.Components.Shared
+@inject TimelineService TimelineService
+
+<h3>Timeline</h3>
+
+<div class="row">
+    <div class="col-md-3">
+        <label>Date:</label>
+        <InputDate @bind-Value="selectedDate" class="form-control" @onchange="ApplyFilters" />
+    </div>
+    <div class="col-md-3">
+        <label>Contract:</label>
+        <select @bind="selectedContractId" class="form-control" @onchange="ApplyFilters">
+            <option value="">All</option>
+            @foreach (var contract in contracts)
+            {
+                <option value="@contract.Id">@contract.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label>Driver:</label>
+        <select @bind="selectedDriverId" class="form-control" @onchange="ApplyFilters">
+            <option value="">All</option>
+            @foreach (var driver in drivers)
+            {
+                <option value="@driver.Id">@driver.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label>Vehicle:</label>
+        <select @bind="selectedVehicleId" class="form-control" @onchange="ApplyFilters">
+            <option value="">All</option>
+            @foreach (var vehicle in vehicles)
+            {
+                <option value="@vehicle.Id">@vehicle.Registration</option>
+            }
+        </select>
+    </div>
+</div>
+
+<hr />
+
+@if (routes == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <TimelineView Routes="routes" OnTileClick="ShowRouteDetails" />
+}
+
+<Popup Title="Route Details" IsVisible="isPopupVisible" OnClose="ClosePopup">
+    <RouteDetailsPopup Route="selectedRoute" />
+</Popup>
+
+@code {
+    private List<Route> routes;
+    private List<Contract> contracts = new();
+    private List<Driver> drivers = new();
+    private List<Vehicle> vehicles = new();
+
+    private DateTime selectedDate = DateTime.Today;
+    private int? selectedContractId;
+    private int? selectedDriverId;
+    private int? selectedVehicleId;
+
+    private bool isPopupVisible = false;
+    private Route selectedRoute;
+
+    protected override async Task OnInitializedAsync()
+    {
+        contracts = await TimelineService.GetContractsAsync();
+        drivers = await TimelineService.GetDriversAsync();
+        vehicles = await TimelineService.GetVehiclesAsync();
+        await LoadRoutes();
+    }
+
+    private async Task LoadRoutes()
+    {
+        routes = await TimelineService.GetRoutesAsync(selectedDate, selectedContractId, selectedDriverId, selectedVehicleId);
+    }
+
+    private async void ApplyFilters()
+    {
+        await LoadRoutes();
+        StateHasChanged();
+    }
+
+    private void ShowRouteDetails(Route route)
+    {
+        selectedRoute = route;
+        isPopupVisible = true;
+        StateHasChanged();
+    }
+
+    private void ClosePopup()
+    {
+        isPopupVisible = false;
+        StateHasChanged();
+    }
+}
