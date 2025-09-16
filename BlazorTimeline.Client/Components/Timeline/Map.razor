@@ -1,0 +1,28 @@
+@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime
+
+<div id="map" style="height: 400px; width: 100%;"></div>
+
+@code {
+    [Parameter]
+    public List<MapMarker> Markers { get; set; }
+
+    private IJSObjectReference map;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && Markers != null && Markers.Any())
+        {
+            var firstMarker = Markers.First();
+            map = await JSRuntime.InvokeAsync<IJSObjectReference>("mapInterop.initializeMap", "map", firstMarker.Latitude, firstMarker.Longitude, 13);
+            await JSRuntime.InvokeVoidAsync("mapInterop.addMarkers", map, Markers);
+        }
+    }
+
+    public class MapMarker
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public string PopupText { get; set; }
+    }
+}

@@ -1,0 +1,14 @@
+@using BlazorTimeline.Client.Models
+@using BlazorTimeline.Client.Components.Timeline
+
+<div class="driver-vehicle-info-tile @TimelineHelper.GetStatusColorClass(Route.PlannedStartTime, Route.ActualStartTime, true)">
+    <h5>@Route.Driver.Name</h5>
+    <p>@Route.Vehicle.Registration</p>
+    <p>Planned Start: @Route.PlannedStartTime.ToString("HH:mm")</p>
+    <p>Actual Start: @(Route.ActualStartTime?.ToString("HH:mm") ?? "N/A")</p>
+</div>
+
+@code {
+    [Parameter]
+    public Route Route { get; set; }
+}

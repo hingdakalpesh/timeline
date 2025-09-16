@@ -1,0 +1,33 @@
+@if (IsVisible)
+{
+    <div class="popup-overlay" @onclick="Close">
+        <div class="popup-container" @onclick:stopPropagation="true">
+            <div class="popup-header">
+                <h3>@Title</h3>
+                <button @onclick="Close">X</button>
+            </div>
+            <div class="popup-content">
+                @ChildContent
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+}
